@@ -7,8 +7,8 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route index element={<LoginForm />} />
-        <Route path="/board" element={<BoardPage />} />
+        {/* <Route index element={<LoginForm />} /> */}
+        <Route index element={<BoardPage />} />
       </Routes>
     </Router>
   );
