@@ -64,7 +64,8 @@
 
 .chatbot {
     display: flex;
-    flex-direction: column; /* Allows the messages and input area to stack */
+    flex-direction: column;
+    /* Allows the messages and input area to stack */
     height: 403px;
     width: 800px;
     background-color: #ABABAB;
@@ -72,8 +73,8 @@
 }
 
 .chatbot-messages {
-    flex: 1; 
+    flex: 1;
     padding: 10px;
-    overflow-y: auto; 
-    border-bottom: 1px solid #ddd; 
+    overflow-y: auto;
+    border-bottom: 1px solid #ddd;
 }

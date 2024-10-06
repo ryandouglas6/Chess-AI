@@ -1,0 +1,22 @@
+.profile-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.profile-avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    cursor: pointer;
+    transition: opacity 0.2s ease-in-out;
+    border: 1px solid #000000; 
+    background-color: aquamarine;
+}
+
+
+.profile-avatar:hover {
+    opacity: 0.8;
+}
