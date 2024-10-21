@@ -1,7 +1,7 @@
 import "./App.css";
-import LoginForm from "./Components/LoginForm/LoginForm";
-import BoardPage from "./Components/Board/BoardPage";
-import Profile from "./Components/Profile/Profile";
+import LoginForm from "./Pages/LoginForm/LoginForm";
+import BoardPage from "./Pages/Board/BoardPage";
+import Profile from "./Pages/Profile/Profile";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App() {
