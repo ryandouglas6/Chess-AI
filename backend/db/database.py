@@ -10,26 +10,27 @@ conn = pyodbc.connect(
 )
 cursor = conn.cursor()
 
+# Commented out as creating same table name throws error
 # Step 1: Create a test table
-cursor.execute("""
-    CREATE TABLE TestTable (
-        ID INT PRIMARY KEY,
-        Name NVARCHAR(50),
-        Age INT
-    )
-""")
-conn.commit()
+# cursor.execute("""
+#    CREATE TABLE TestTable (
+#        ID INT PRIMARY KEY,
+#        Name NVARCHAR(50),
+#        Age INT
+#    )
+# """)
+# conn.commit()
 
 # Step 2: Insert mock data
-cursor.execute("INSERT INTO TestTable (ID, Name, Age) VALUES (1, 'Alice', 25)")
+cursor.execute("INSERT INTO TestTable (ID, Name, Age) VALUES (8, 'Austin', 35)")
 conn.commit()
 
 # Step 3: Modify the data
-cursor.execute("UPDATE TestTable SET Age = 26 WHERE ID = 1")
+cursor.execute("UPDATE TestTable SET Age = 36 WHERE ID = 8")
 conn.commit()
 
 # Step 4: Retrieve and print the modified data
-cursor.execute("SELECT * FROM TestTable WHERE ID = 1")
+cursor.execute("SELECT * FROM TestTable WHERE ID = 8")
 row = cursor.fetchone()
 print(row)
 
