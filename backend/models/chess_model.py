@@ -13,6 +13,7 @@ class ChessBot(nn.Module):
         # 1st Layer: takes input representing 64 chessboard squares and outputs 128 "neurons"
         self.fc1 = nn.Linear(64, 128)
         # 2nd layer: condenses 128 neurons to 64 neurons
+        
         self.fc2 = nn.Linear(128, 64)
         # 3rd layer: narrows decision space to 32 neurons
         self.fc3 = nn.Linear(64, 32)
