@@ -25,7 +25,7 @@
 }
 
 .player-name {
-    width: 800px;
+    width: 560px;
     background-color: rgb(230, 230, 230);
     text-align: left;
     padding: 10px;
@@ -60,6 +60,33 @@
     width: 800px;
     background-color: #284e4c;
     grid-row: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.bot-item {
+    padding: 10px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.bot-item.selected {
+    background-color: #407976; /* Change color as desired */
+    color: white;
+}
+
+.bot-info {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.bot-image {
+    width: 50px; /* Adjust width as needed */
+    height: 50px; /* Adjust height to keep it square */
+    margin-right: 20px; /* Space between image and text */
+    vertical-align: middle; /* Align image with the text */
 }
 
 .chatbot {

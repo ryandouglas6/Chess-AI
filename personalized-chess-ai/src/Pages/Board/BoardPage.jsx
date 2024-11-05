@@ -17,6 +17,7 @@ const BoardPage = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef(null);
+  const [selectedBot, setSelectedBot] = useState(null);
 
   const makeBotMove = useCallback(() => {
     console.log("Bot is thinking...");
@@ -119,6 +120,24 @@ const BoardPage = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // List of bots
+  const bots = [
+    { name: 'Bot 1', photo: require('./bot_pics/bot1.png') },
+    { name: 'Bot 2', photo: require('./bot_pics/bot2.png') },
+    { name: 'Bot 3', photo: require('./bot_pics/bot3.png') },
+    { name: 'Bot 4', photo: require('./bot_pics/bot4.png') },
+    { name: 'Bot 5', photo: require('./bot_pics/bot5.png') },
+    { name: 'Bot 6', photo: require('./bot_pics/bot6.png') },
+    { name: 'Bot 7', photo: require('./bot_pics/bot7.png') },
+    { name: 'Bot 8', photo: require('./bot_pics/bot8.png') },
+    { name: 'Bot 9', photo: require('./bot_pics/bot9.png') },
+    { name: 'Bot 10', photo: require('./bot_pics/bot10.png')},
+  ];
+
+  const handleSelect = (bot) => {
+      setSelectedBot(bot.name);
+  };
+
   return (
     <div>
       <Header />
@@ -148,8 +167,18 @@ const BoardPage = () => {
 
         <div className="rightside-parts">
           <div className="bot-list">
-            Bot (Black) is using Sicilian Defense Opening Book and Negamax
-            algorithm with depth 6
+            {bots.map((bot, index) => (
+                <div
+                  key={index}
+                  className={`bot-item ${selectedBot === bot.name ? 'selected' : ''}`}
+                  onClick={() => handleSelect(bot)}
+                >
+                  <div className="bot-info">
+                    <img src={bot.photo} alt={bot.name} className="bot-image" />
+                    <p>{bot.name}</p>
+                  </div>
+                </div>
+            ))}
           </div>
 
           <div className="chatbot">
