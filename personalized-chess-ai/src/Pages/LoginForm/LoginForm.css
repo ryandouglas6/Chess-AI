@@ -1,21 +1,27 @@
 .login-container {
-  display: flex; /* Apply Flexbox */
-  flex-direction: column; /* Ensures content stacks vertically */
-  justify-content: center; /* Centers content vertically */
-  align-items: center; /* Centers content horizontally */
-  height: 80vh; /* Make container take up the full height of the viewport */
-  text-align: center; /* Centers inline content like text */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+  text-align: center;
 }
 
 .title {
   padding-bottom: 20px;
+  transition: all 0.3s ease;
 }
 
 .chess-logo {
   width: 150px;
   height: auto;
   margin-bottom: 20px;
-  border-radius: 50%; /* For a circular image */
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.chess-logo:hover {
+  transform: scale(1.05);
 }
 
 .wrapper {
@@ -24,6 +30,8 @@
   color: black;
   border-radius: 10px;
   padding: 30px 40px;
+  transition: height 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .wrapper h1 {
@@ -36,6 +44,29 @@
   width: 100%;
   height: 50px;
   margin: 30px 0;
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.3s ease;
+}
+
+.input-box.slide-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.input-box.slide-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.input-box.slide-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.input-box.slide-exit-active {
+  opacity: 0;
+  transform: translateY(-20px);
 }
 
 .input-box input {
@@ -48,6 +79,11 @@
   font-size: 16px;
   color: black;
   padding: 20px 45px 20px 20px;
+  transition: border-color 0.3s ease;
+}
+
+.input-box input:focus {
+  border-color: rgba(0, 0, 0, 0.5);
 }
 
 .input-box input::placeholder {
@@ -60,6 +96,12 @@
   top: 50%;
   transform: translateY(-50%);
   font-size: 16px;
+  color: rgba(0, 0, 0, 0.5);
+  transition: color 0.3s ease;
+}
+
+.input-box input:focus + .icon {
+  color: rgba(0, 0, 0, 0.8);
 }
 
 .wrapper .remember-forgot {
@@ -67,9 +109,10 @@
   justify-content: space-between;
   font-size: 14.5px;
   margin: -15px 0 15px;
+  transition: opacity 0.3s ease;
 }
 
-.rember-forgot label input {
+.remember-forgot label input {
   accent-color: black;
   margin-right: 4px;
 }
@@ -77,10 +120,12 @@
 .remember-forgot a {
   color: black;
   text-decoration: none;
+  transition: color 0.3s ease;
 }
 
 .remember-forgot a:hover {
   text-decoration: underline;
+  color: rgba(0, 0, 0, 0.7);
 }
 
 .wrapper button {
@@ -90,25 +135,51 @@
   border: none;
   outline: none;
   border-radius: 40px;
-  box-shadow: 0 0 10px rbga(0, 0, 0, 0.1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   font-size: 16px;
   color: #fff;
   font-weight: 700;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.wrapper button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.wrapper button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .wrapper .register-link {
   font-size: 14.5px;
   text-align: center;
-  margin-top: 20px 0 15px;
+  margin: 20px 0 15px;
+  transition: opacity 0.3s ease;
 }
 
 .register-link p a {
   color: black;
   text-decoration: none;
   font-weight: 600;
+  transition: color 0.3s ease;
 }
 
 .register-link p a:hover {
   text-decoration: underline;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+/* Animation classes for form switching */
+.form-container {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.3s ease;
+}
+
+.form-container.switching {
+  opacity: 0;
+  transform: translateY(10px);
 }

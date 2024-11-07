@@ -8,6 +8,7 @@ import {
   makeRandomMove,
 } from "./chess-logic";
 import Header from "../Header/Header";
+import OpenAI from 'openai';
 
 const BoardPage = () => {
   const [chess, setChess] = useState(new Chess());
@@ -18,6 +19,62 @@ const BoardPage = () => {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef(null);
   const [selectedBot, setSelectedBot] = useState(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+
+  const openai = new OpenAI({
+    apiKey: process.env.REACT_APP_OPENAI_API_KEY,
+    dangerouslyAllowBrowser: true
+  });
+
+  const generateCoachResponse = async (userMessage, isAnalysis = false) => {
+    if (isAnalysis) {
+      setIsAnalyzing(true);
+    } else {
+      setIsSendingMessage(true);
+      // Immediately show the user's message
+      setMessages(prev => [...prev, { sender: "User", text: userMessage }]);
+    }
+
+    try {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4",
+        messages: [
+          {
+            role: "system",
+            content: "You are a chess coach. Analyze positions and provide helpful advice. Be concise and specific."
+          },
+          {
+            role: "user",
+            content: `Current chess position (FEN): ${chess.fen()}\nUser message: ${userMessage}`
+          }
+        ],
+        max_tokens: 150
+      });
+
+      const coachResponse = response.choices[0].message.content;
+      setMessages(prev => [
+        ...prev,
+        ...(isAnalysis ? [{ sender: "User", text: "Please analyze the current position." }] : []),
+        { sender: "Coach", text: coachResponse }
+      ]);
+    } catch (error) {
+      console.error("Error getting coach response:", error);
+      setMessages(prev => [...prev,
+        { sender: "Coach", text: "Sorry, I'm having trouble responding right now. Please try again." }
+      ]);
+    } finally {
+      if (isAnalysis) {
+        setIsAnalyzing(false);
+      } else {
+        setIsSendingMessage(false);
+      }
+    }
+  };
+
+  const handleAnalyzePosition = async () => {
+    await generateCoachResponse("Please analyze the current position.", true);
+  };
 
   const makeBotMove = useCallback(() => {
     console.log("Bot is thinking...");
@@ -108,10 +165,10 @@ const BoardPage = () => {
     setInput(e.target.value);
   };
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
     if (input.trim()) {
-      setMessages([...messages, { sender: "User", text: input }]);
+      await generateCoachResponse(input);
       setInput("");
     }
   };
@@ -184,40 +241,63 @@ const BoardPage = () => {
           <div className="chatbot">
             <div className="chatbot-messages">
               {messages.map((msg, index) => (
-                <div key={index}>
+                <div key={index} className={`message ${msg.sender.toLowerCase()}`}>
                   <strong>{msg.sender}:</strong> {msg.text}
                 </div>
               ))}
+              {isSendingMessage && (
+                <div className="message coach typing">
+                  <span className="typing-indicator">
+                    <span>.</span><span>.</span><span>.</span>
+                  </span>
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
-            <form
-              onSubmit={handleSendMessage}
-              style={{
-                display: "flex",
-                border: "1px solid #000000",
-                backgroundColor: "white",
-              }}
-            >
-              <input
-                type="text"
-                value={input}
-                onChange={handleInputChange}
-                placeholder="Type your message..."
-                style={{ flex: 1, padding: "10px", border: "1px solid #ddd" }}
-              />
-              <button
-                type="submit"
-                style={{
-                  padding: "10px",
-                  backgroundColor: "#007bff",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                }}
+            <div className="chat-controls">
+              <form
+                onSubmit={handleSendMessage}
+                className="message-form"
               >
-                Send
+                <input
+                  type="text"
+                  value={input}
+                  onChange={handleInputChange}
+                  placeholder="Type your message..."
+                  className="message-input"
+                  disabled={isSendingMessage}
+                />
+                <button
+                  type="submit"
+                  className={`send-button ${isSendingMessage ? 'disabled' : ''}`}
+                  disabled={isSendingMessage}
+                >
+                  Send
+                </button>
+              </form>
+              <button
+                onClick={handleAnalyzePosition}
+                className={`analyze-button ${isAnalyzing ? 'disabled' : ''}`}
+                disabled={isAnalyzing || isSendingMessage}
+              >
+                {isAnalyzing ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Analyzing Position...
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center">
+                    <svg className="h-5 w-5 mr-2" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                      <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    Analyze Position
+                  </span>
+                )}
               </button>
-            </form>
+            </div>
           </div>
         </div>
       </div>
