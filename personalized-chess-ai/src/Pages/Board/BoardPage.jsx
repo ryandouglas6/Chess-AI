@@ -22,9 +22,10 @@ const BoardPage = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
 
+  // Initialize OpenAI with configuration
   const openai = new OpenAI({
     apiKey: process.env.REACT_APP_OPENAI_API_KEY,
-    dangerouslyAllowBrowser: true
+    dangerouslyAllowBrowser: true // Required for client-side usage
   });
 
   const generateCoachResponse = async (userMessage, isAnalysis = false) => {
