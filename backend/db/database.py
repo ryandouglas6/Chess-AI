@@ -10,29 +10,47 @@ conn = pyodbc.connect(
 )
 cursor = conn.cursor()
 
-# Commented out as creating same table name throws error
-# Step 1: Create a test table
-# cursor.execute("""
-#    CREATE TABLE TestTable (
-#        ID INT PRIMARY KEY,
-#        Name NVARCHAR(50),
-#        Age INT
-#    )
-# """)
-# conn.commit()
-
-# Step 2: Insert mock data
-cursor.execute("INSERT INTO TestTable (ID, Name, Age) VALUES (8, 'Austin', 35)")
+# Create Users table (if not already created)
+cursor.execute("""
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Users' AND xtype='U')
+CREATE TABLE Users (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    firstname VARCHAR(50) NOT NULL,
+    lastname VARCHAR(50) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL
+)
+""")
+print("Users table ensured.")
 conn.commit()
 
-# Step 3: Modify the data
-cursor.execute("UPDATE TestTable SET Age = 36 WHERE ID = 8")
+# Create Games table (if not already created)
+cursor.execute("""
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Games' AND xtype='U')
+CREATE TABLE Games (
+    game_id INT IDENTITY(1,1) PRIMARY KEY,
+    player1ID INT NOT NULL,
+    player2ID VARCHAR(50) NOT NULL, -- Can be a user ID or bot ID (e.g., 'bot1')
+    game_data TEXT NOT NULL,
+    created_at VARCHAR(20) NOT NULL,
+    FOREIGN KEY (player1ID) REFERENCES Users(id)
+)
+""")
+print("Games table ensured.")
 conn.commit()
 
-# Step 4: Retrieve and print the modified data
-cursor.execute("SELECT * FROM TestTable WHERE ID = 8")
-row = cursor.fetchone()
-print(row)
+# Create Bots table
+cursor.execute("""
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Bots' AND xtype='U')
+CREATE TABLE Bots (
+    bot_id VARCHAR(50) PRIMARY KEY,
+    name VARCHAR(50) NOT NULL
+)
+""")
+print("Bots table ensured.")
+conn.commit()
 
-# Step 5: Close the connection
+# Close the connection
 conn.close()
+print("Connection closed.")

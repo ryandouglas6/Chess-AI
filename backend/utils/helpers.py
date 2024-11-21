@@ -1,29 +1,38 @@
-# Function to validate user login data
-def validate_login(data):
-    if 'username' not in data or 'password' not in data:
-        return False, "Username and password are required."
-    if len(data['password']) < 6:
-        return False, "Password must be at least 6 characters."
-    return True, "Valid data."
+import re
 
-# Function to format game result data
-def format_game_result(data):
-    required_fields = ['user_id', 'game_id', 'result']
-    for field in required_fields:
-        if field not in data:
-            return False, f"Missing required field: {field}"
-    return True, {
-        "user_id": data['user_id'],
-        "game_id": data['game_id'],
-        "result": data['result']
-    }
+# Validate if a username is unique
+def is_username_taken(username, cursor):
+    cursor.execute("SELECT username FROM Users WHERE username = ?", username)
+    return cursor.fetchone() is not None
 
-# Function to sanitize input data
-def sanitize_input(data):
-    # For now: stripping unnecessary spaces and converting to lowercase - will need to support invalid chars later
-    sanitized_data = {key: value.strip().lower() if isinstance(value, str) else value for key, value in data.items()}
-    return sanitized_data
+# Validate if an email is unique
+def is_email_taken(email, cursor):
+    cursor.execute("SELECT email FROM Users WHERE email = ?", email)
+    return cursor.fetchone() is not None
 
-# More helper functions to come...
-def some_other_helper_function():
-    pass
+# Validate password strength
+def validate_password_strength(password):
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters."
+    if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+        return False, "Password must contain at least one special character."
+    return True, "Valid password."
+
+# Check if the provided password matches the stored password for a given username
+def is_password_correct(username, provided_password, cursor):
+    cursor.execute("SELECT password FROM Users WHERE username = ?", username)
+    stored_password = cursor.fetchone()
+    if stored_password and stored_password[0] == provided_password:
+        return True
+    return False
+
+# Sanitize chess notation data
+def sanitize_chess_notation(game_data):
+    # Validate format using basic regex or external logic later
+    return game_data.strip()
+
+# Generate a unique bot ID
+def generate_bot_id(cursor):
+    cursor.execute("SELECT COUNT(*) FROM Bots")
+    count = cursor.fetchone()[0] + 1
+    return f"bot{count}"
