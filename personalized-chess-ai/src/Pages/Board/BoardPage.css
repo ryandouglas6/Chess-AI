@@ -1,7 +1,7 @@
 .page-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    height: 90vh;
+    height: 85vh;
     gap: 16px;
     padding: 16px;
     overflow: hidden;
@@ -11,33 +11,29 @@
 .chess-game {
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     height: 100%;
-    width: 100%;
-    padding: 12px;
+    position: relative;
 }
 
 .board-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 70%;
+    width: 100%;
     max-width: 560px;
-    position: absolute;
-    top: 200px;
-}
-
-.board-container > div {
-    width: 100% !important;
-    height: auto !important;
+    position: relative;
+    margin: auto;
 }
 
 .board {
     display: flex;
     align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
     position: relative;
-    width: fit-content;
 }
 
 .game-over-overlay {
@@ -340,4 +336,20 @@
 
 .animate-spin {
     animation: spin 1s linear infinite;
+}
+
+[data-square-coord] {
+    z-index: 3;
+    position: relative;
+}
+
+[draggable="true"] {
+    z-index: 4;
+    cursor: grab;
+    position: relative;
+    transform-origin: center center;
+}
+
+[draggable="true"]:active {
+    cursor: grabbing;
 }
