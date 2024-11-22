@@ -183,13 +183,16 @@ def create_bot():
     # Generate a unique bot ID from helpers
     bot_id = generate_bot_id(cursor)
 
+    # Set user_id (default to 0 if not provided)
+    user_id = data.get('user_id', 0)
+
     # Insert the new bot into the database
     cursor.execute(
         """
-        INSERT INTO Bots (bot_id, name)
-        VALUES (?, ?)
+        INSERT INTO Bots (bot_id, name, user_id)
+        VALUES (?, ?, ?)
         """,
-        bot_id, data['name']
+        bot_id, data['name'], user_id
     )
     conn.commit()
     conn.close()
@@ -237,6 +240,24 @@ def fetch_game_history(user_id):
 
     conn.close()
     return jsonify({"game_history": game_history}), 200
+
+# Fetch bots for a specific user
+@app.route('/fetch-bots/<int:user_id>', methods=['GET'])
+def fetch_bots(user_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT bot_id, name FROM Bots WHERE user_id = ?", user_id)
+    bots = cursor.fetchall()
+
+    if not bots:
+        conn.close()
+        return jsonify({"error": "No bots found for this user."}), 404
+
+    bot_list = [{"bot_id": bot[0], "name": bot[1]} for bot in bots]
+
+    conn.close()
+    return jsonify({"bots": bot_list}), 200
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

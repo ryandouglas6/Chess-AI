@@ -45,7 +45,8 @@ cursor.execute("""
 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Bots' AND xtype='U')
 CREATE TABLE Bots (
     bot_id VARCHAR(50) PRIMARY KEY,
-    name VARCHAR(50) NOT NULL
+    name VARCHAR(50) NOT NULL,
+    user_id INT DEFAULT 0 NOT NULL
 )
 """)
 print("Bots table ensured.")

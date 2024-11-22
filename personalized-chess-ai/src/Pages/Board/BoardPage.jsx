@@ -6,7 +6,7 @@ import {
   findBestMove,
   getSicilianBookMove,
   makeRandomMove,
-} from "./chess-logic";
+} from "./chess-logic1.js";
 import Header from "../Header/Header";
 import OpenAI from 'openai';
 
@@ -21,6 +21,8 @@ const BoardPage = () => {
   const [selectedBot, setSelectedBot] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
+  const [winner, setWinner] = useState(null);
 
   // Initialize OpenAI with configuration
   const openai = new OpenAI({
@@ -53,6 +55,8 @@ const BoardPage = () => {
         max_tokens: 150
       });
 
+      // Testing
+      
       const coachResponse = response.choices[0].message.content;
       setMessages(prev => [
         ...prev,
@@ -105,6 +109,18 @@ const BoardPage = () => {
           setFen(newChess.fen());
           setMoveHistory((prev) => [...prev, newChess.fen()]);
           console.log("Bot moved:", bestMove);
+
+          // Check for game over after bot's move
+          if (newChess.isGameOver()) {
+            setGameOver(true);
+            if (newChess.isCheckmate()) {
+              setWinner('bot');
+            } else {
+              setWinner('draw');
+            }
+            return;
+          }
+
           setIsPlayerTurn(true);
         } else {
           console.error("Move returned null:", bestMove);
@@ -155,6 +171,18 @@ const BoardPage = () => {
         setFen(newChess.fen());
         setMoveHistory((prev) => [...prev, newChess.fen()]);
         console.log("Player moved:", move);
+
+        // Check for game over after player's move
+        if (newChess.isGameOver()) {
+          setGameOver(true);
+          if (newChess.isCheckmate()) {
+            setWinner('player');
+          } else {
+            setWinner('draw');
+          }
+          return;
+        }
+
         setIsPlayerTurn(false);
       }
     } catch (error) {
@@ -202,24 +230,35 @@ const BoardPage = () => {
 
       <div className="page-container">
         <div className="chess-game">
-          <div className="player-name opponent">
-            <span>Bot (Black - Sicilian Defense)</span>
-          </div>
-          <div className="board">
-            <Chessboard
-              position={fen}
-              orientation="white"
-              onDrop={(move) =>
-                handleMove({
-                  from: move.sourceSquare,
-                  to: move.targetSquare,
-                  promotion: "q",
-                })
-              }
-            />
-          </div>
-          <div className="player-name player">
-            <span>You (White)</span>
+          <div className="board-container">
+            <div className="player-name opponent">
+              <span>Bot (Black - Sicilian Defense)</span>
+            </div>
+            <div className="board">
+              <Chessboard
+                position={fen}
+                orientation="white"
+                onDrop={(move) =>
+                  handleMove({
+                    from: move.sourceSquare,
+                    to: move.targetSquare,
+                    promotion: "q",
+                  })
+                }
+              />
+              {gameOver && (
+                <div className="game-over-overlay">
+                  <div className="game-over-message">
+                    {winner === 'player' && <h2>You Win! 🎉</h2>}
+                    {winner === 'bot' && <h2>Bot Wins! 🤖</h2>}
+                    {winner === 'draw' && <h2>Game Draw! 🤝</h2>}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="player-name player">
+              <span>You (White)</span>
+            </div>
           </div>
         </div>
 
