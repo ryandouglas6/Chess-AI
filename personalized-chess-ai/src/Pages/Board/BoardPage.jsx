@@ -55,6 +55,8 @@ const BoardPage = () => {
         max_tokens: 150
       });
 
+      // Testing
+      
       const coachResponse = response.choices[0].message.content;
       setMessages(prev => [
         ...prev,
