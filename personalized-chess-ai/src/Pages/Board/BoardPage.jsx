@@ -4,13 +4,14 @@ import Chessboard from "chessboardjsx";
 import { Chess } from "chess.js";
 import * as chessLogic1 from "./chess-logic1.js";
 import * as chessLogic2 from "./chess-logic2.js";
+import * as chessLogic3 from "./chess-logic3.js";
 import Header from "../Header/Header";
 import OpenAI from 'openai';
 
 const bots = [
   { name: 'Bot 1', photo: require('./bot_pics/bot1.png'), logic: chessLogic1, label: 'Strategic Bot (Sicilian)' },
   { name: 'Bot 2', photo: require('./bot_pics/bot2.png'), logic: chessLogic2, label: 'Random Moves Bot' },
-  { name: 'Bot 3', photo: require('./bot_pics/bot3.png'), logic: chessLogic2, label: 'Random Moves Bot' },
+  { name: 'Bot 3', photo: require('./bot_pics/bot3.png'), logic: chessLogic3, label: 'Stockfish 1500' },
   { name: 'Bot 4', photo: require('./bot_pics/bot4.png'), logic: chessLogic2, label: 'Random Moves Bot' },
   { name: 'Bot 5', photo: require('./bot_pics/bot5.png'), logic: chessLogic2, label: 'Random Moves Bot' },
   { name: 'Bot 6', photo: require('./bot_pics/bot6.png'), logic: chessLogic2, label: 'Random Moves Bot' },
@@ -92,7 +93,7 @@ const BoardPage = () => {
     await generateCoachResponse("Please analyze the current position.", true);
   };
 
-  const makeBotMove = useCallback(() => {
+  const makeBotMove = useCallback(async () => {
     console.log("Bot is thinking...");
     const startTime = performance.now();
     const newChess = new Chess(chess.fen());
@@ -102,21 +103,19 @@ const BoardPage = () => {
     // Get the selected bot's logic
     const selectedBotLogic = bots.find(bot => bot.name === selectedBot)?.logic || chessLogic1;
 
-    const bookMove = selectedBotLogic.getSicilianBookMove?.(newChess);
-    let bestMove;
+    try {
+      let bestMove;
+      
+      if (selectedBotLogic.getSicilianBookMove) {
+        bestMove = selectedBotLogic.getSicilianBookMove(newChess);
+      }
+      
+      if (!bestMove) {
+        console.log("Calculating best move...");
+        bestMove = await selectedBotLogic.findBestMove(newChess);
+      }
 
-    if (bookMove) {
-      console.log("Using Sicilian opening book move:", bookMove);
-      bestMove = bookMove;
-    } else {
-      console.log(
-        "No Sicilian opening book move found, calculating best move..."
-      );
-      bestMove = selectedBotLogic.findBestMove(newChess);
-    }
-
-    if (bestMove) {
-      try {
+      if (bestMove) {
         const result = newChess.move(bestMove);
         if (result) {
           setChess(newChess);
@@ -138,10 +137,14 @@ const BoardPage = () => {
           setIsPlayerTurn(true);
         } else {
           console.error("Move returned null:", bestMove);
+          throw new Error("Invalid move");
         }
-      } catch (error) {
-        console.error("Invalid bot move:", error, bestMove);
-        const randomMove = selectedBotLogic.makeRandomMove(newChess);
+      }
+    } catch (error) {
+      console.error("Error making bot move:", error);
+      // Fallback to random move only for non-Stockfish bots
+      if (selectedBotLogic !== chessLogic3) {
+        const randomMove = selectedBotLogic.makeRandomMove?.(newChess);
         if (randomMove) {
           newChess.move(randomMove);
           setChess(newChess);
@@ -150,17 +153,6 @@ const BoardPage = () => {
           console.log("Bot made random move:", randomMove);
           setIsPlayerTurn(true);
         }
-      }
-    } else {
-      console.log("No valid moves for bot");
-      const randomMove = selectedBotLogic.makeRandomMove(newChess);
-      if (randomMove) {
-        newChess.move(randomMove);
-        setChess(newChess);
-        setFen(newChess.fen());
-        setMoveHistory((prev) => [...prev, newChess.fen()]);
-        console.log("Bot made random move:", randomMove);
-        setIsPlayerTurn(true);
       }
     }
     const endTime = performance.now();
@@ -175,6 +167,20 @@ const BoardPage = () => {
       return () => clearTimeout(timerId);
     }
   }, [isPlayerTurn, makeBotMove]);
+
+  useEffect(() => {
+    // Initialize Stockfish when component mounts
+    if (selectedBot === 'Bot 3') {
+      const initEngine = async () => {
+        await chessLogic3.initializeEngine();
+      };
+      initEngine();
+    }
+    return () => {
+      // Cleanup Stockfish when component unmounts
+      chessLogic3.cleanup();
+    };
+  }, [selectedBot]);
 
   useEffect(() => {
     // If player is black, bot (white) makes the first move
