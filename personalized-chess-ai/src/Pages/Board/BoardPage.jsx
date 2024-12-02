@@ -2,13 +2,23 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import "./BoardPage.css";
 import Chessboard from "chessboardjsx";
 import { Chess } from "chess.js";
-import {
-  findBestMove,
-  getSicilianBookMove,
-  makeRandomMove,
-} from "./chess-logic1.js";
+import * as chessLogic1 from "./chess-logic1.js";
+import * as chessLogic2 from "./chess-logic2.js";
 import Header from "../Header/Header";
 import OpenAI from 'openai';
+
+const bots = [
+  { name: 'Bot 1', photo: require('./bot_pics/bot1.png'), logic: chessLogic1, label: 'Strategic Bot (Sicilian)' },
+  { name: 'Bot 2', photo: require('./bot_pics/bot2.png'), logic: chessLogic2, label: 'Random Moves Bot' },
+  { name: 'Bot 3', photo: require('./bot_pics/bot3.png'), logic: chessLogic2, label: 'Random Moves Bot' },
+  { name: 'Bot 4', photo: require('./bot_pics/bot4.png'), logic: chessLogic2, label: 'Random Moves Bot' },
+  { name: 'Bot 5', photo: require('./bot_pics/bot5.png'), logic: chessLogic2, label: 'Random Moves Bot' },
+  { name: 'Bot 6', photo: require('./bot_pics/bot6.png'), logic: chessLogic2, label: 'Random Moves Bot' },
+  { name: 'Bot 7', photo: require('./bot_pics/bot7.png'), logic: chessLogic2, label: 'Random Moves Bot' },
+  { name: 'Bot 8', photo: require('./bot_pics/bot8.png'), logic: chessLogic2, label: 'Random Moves Bot' },
+  { name: 'Bot 9', photo: require('./bot_pics/bot9.png'), logic: chessLogic2, label: 'Random Moves Bot' },
+  { name: 'Bot 10', photo: require('./bot_pics/bot10.png'), logic: chessLogic2, label: 'Random Moves Bot' },
+];
 
 const BoardPage = () => {
   const [chess, setChess] = useState(new Chess());
@@ -18,7 +28,7 @@ const BoardPage = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef(null);
-  const [selectedBot, setSelectedBot] = useState(null);
+  const [selectedBot, setSelectedBot] = useState(bots[0]?.name);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [gameOver, setGameOver] = useState(false);
@@ -89,7 +99,10 @@ const BoardPage = () => {
     console.log("Current FEN:", newChess.fen());
     console.log("Valid moves:", newChess.moves({ verbose: true }));
 
-    const bookMove = getSicilianBookMove(newChess);
+    // Get the selected bot's logic
+    const selectedBotLogic = bots.find(bot => bot.name === selectedBot)?.logic || chessLogic1;
+
+    const bookMove = selectedBotLogic.getSicilianBookMove?.(newChess);
     let bestMove;
 
     if (bookMove) {
@@ -99,7 +112,7 @@ const BoardPage = () => {
       console.log(
         "No Sicilian opening book move found, calculating best move..."
       );
-      bestMove = findBestMove(newChess);
+      bestMove = selectedBotLogic.findBestMove(newChess);
     }
 
     if (bestMove) {
@@ -128,7 +141,7 @@ const BoardPage = () => {
         }
       } catch (error) {
         console.error("Invalid bot move:", error, bestMove);
-        const randomMove = makeRandomMove(newChess);
+        const randomMove = selectedBotLogic.makeRandomMove(newChess);
         if (randomMove) {
           newChess.move(randomMove);
           setChess(newChess);
@@ -140,7 +153,7 @@ const BoardPage = () => {
       }
     } else {
       console.log("No valid moves for bot");
-      const randomMove = makeRandomMove(newChess);
+      const randomMove = selectedBotLogic.makeRandomMove(newChess);
       if (randomMove) {
         newChess.move(randomMove);
         setChess(newChess);
@@ -152,7 +165,7 @@ const BoardPage = () => {
     }
     const endTime = performance.now();
     console.log(`Bot thinking time: ${endTime - startTime} ms`);
-  }, [chess, moveHistory]);
+  }, [chess, moveHistory, selectedBot]);
 
   useEffect(() => {
     if (!isPlayerTurn) {
@@ -221,21 +234,19 @@ const BoardPage = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const bots = [
-    { name: 'Bot 1', photo: require('./bot_pics/bot1.png') },
-    { name: 'Bot 2', photo: require('./bot_pics/bot2.png') },
-    { name: 'Bot 3', photo: require('./bot_pics/bot3.png') },
-    { name: 'Bot 4', photo: require('./bot_pics/bot4.png') },
-    { name: 'Bot 5', photo: require('./bot_pics/bot5.png') },
-    { name: 'Bot 6', photo: require('./bot_pics/bot6.png') },
-    { name: 'Bot 7', photo: require('./bot_pics/bot7.png') },
-    { name: 'Bot 8', photo: require('./bot_pics/bot8.png') },
-    { name: 'Bot 9', photo: require('./bot_pics/bot9.png') },
-    { name: 'Bot 10', photo: require('./bot_pics/bot10.png')},
-  ];
-
   const handleSelect = (bot) => {
-      setSelectedBot(bot.name);
+    setSelectedBot(bot.name);
+    // Reset the game
+    const newGame = new Chess();
+    setChess(newGame);
+    setFen(newGame.fen());
+    setMoveHistory([]);
+    setGameOver(false);
+    setWinner(null);
+    setMessages([]);
+    // If it's the Sicilian bot (Bot 1), player is always white, otherwise random
+    setPlayerColor(bot.name === 'Bot 1' ? 'white' : (Math.random() < 0.5 ? 'white' : 'black'));
+    setIsPlayerTurn(true);
   };
 
   return (
@@ -286,7 +297,10 @@ const BoardPage = () => {
                 >
                   <div className="bot-info">
                     <img src={bot.photo} alt={bot.name} className="bot-image" />
-                    <p>{bot.name}</p>
+                    <div>
+                      <p>{bot.name}</p>
+                      <p className="bot-label">{bot.label}</p>
+                    </div>
                   </div>
                 </div>
             ))}
