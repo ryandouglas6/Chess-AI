@@ -2,7 +2,7 @@
 let stockfish = null;
 let engineReady = false;
 
-export async function initializeEngine() {
+export async function initializeEngine(botName = 'Bot 3', customElo = null) {
     if (stockfish) {
         stockfish.terminate();
     }
@@ -14,10 +14,29 @@ export async function initializeEngine() {
             const line = event.data;
             if (line === 'uciok') {
                 engineReady = true;
-                // Configure Stockfish for ~1500 ELO rating
-                stockfish.postMessage('setoption name Skill Level value 10');
+                // Configure Stockfish based on bot name or custom ELO
+                let elo;
+                if (customElo !== null) {
+                    elo = customElo;
+                } else {
+                    const eloRatings = {
+                        'Bot 3': 500,
+                        'Bot 4': 1000,
+                        'Bot 5': 1250,
+                        'Bot 6': 1500,
+                        'Bot 7': 1750,
+                        'Bot 8': 2000,
+                        'Bot 9': 2250,
+                        'Bot 10': 2500
+                    };
+                    elo = eloRatings[botName] || 1500;
+                }
+                
+                const skillLevel = Math.min(20, Math.floor((elo - 500) / 100)); // Scale skill level with ELO
+                
+                stockfish.postMessage(`setoption name Skill Level value ${skillLevel}`);
                 stockfish.postMessage('setoption name UCI_LimitStrength value true');
-                stockfish.postMessage('setoption name UCI_Elo value 1500');
+                stockfish.postMessage(`setoption name UCI_Elo value ${elo}`);
                 stockfish.postMessage('isready');
             }
         };

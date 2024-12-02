@@ -9,16 +9,17 @@ import Header from "../Header/Header";
 import OpenAI from 'openai';
 
 const bots = [
-  { name: 'Bot 1', photo: require('./bot_pics/bot1.png'), logic: chessLogic1, label: 'Strategic Bot (Sicilian)' },
-  { name: 'Bot 2', photo: require('./bot_pics/bot2.png'), logic: chessLogic2, label: 'Random Moves Bot' },
-  { name: 'Bot 3', photo: require('./bot_pics/bot3.png'), logic: chessLogic3, label: 'Stockfish 1500' },
-  { name: 'Bot 4', photo: require('./bot_pics/bot4.png'), logic: chessLogic2, label: 'Random Moves Bot' },
-  { name: 'Bot 5', photo: require('./bot_pics/bot5.png'), logic: chessLogic2, label: 'Random Moves Bot' },
-  { name: 'Bot 6', photo: require('./bot_pics/bot6.png'), logic: chessLogic2, label: 'Random Moves Bot' },
-  { name: 'Bot 7', photo: require('./bot_pics/bot7.png'), logic: chessLogic2, label: 'Random Moves Bot' },
-  { name: 'Bot 8', photo: require('./bot_pics/bot8.png'), logic: chessLogic2, label: 'Random Moves Bot' },
-  { name: 'Bot 9', photo: require('./bot_pics/bot9.png'), logic: chessLogic2, label: 'Random Moves Bot' },
-  { name: 'Bot 10', photo: require('./bot_pics/bot10.png'), logic: chessLogic2, label: 'Random Moves Bot' },
+  { name: 'Training Bot', photo: require('./bot_pics/bot1.png'), logic: chessLogic3, label: 'Personalized Training Bot' },
+  { name: 'Rookinator', photo: require('./bot_pics/bot1.png'), logic: chessLogic1, label: 'Strategic Bot (Sicilian)' },
+  { name: 'Pawnstar', photo: require('./bot_pics/bot2.png'), logic: chessLogic2, label: 'Random Moves Bot' },
+  { name: 'Knight Fury', photo: require('./bot_pics/bot3.png'), logic: chessLogic3, label: 'Stockfish 500' },
+  { name: 'Bishop Blitz', photo: require('./bot_pics/bot4.png'), logic: chessLogic3, label: 'Stockfish 1000' },
+  { name: 'Queen Quest', photo: require('./bot_pics/bot5.png'), logic: chessLogic3, label: 'Stockfish 1250' },
+  { name: 'King Crusher', photo: require('./bot_pics/bot6.png'), logic: chessLogic3, label: 'Stockfish 1500' },
+  { name: 'Castling Conqueror', photo: require('./bot_pics/bot7.png'), logic: chessLogic3, label: 'Stockfish 1750' },
+  { name: 'Pawnstorm', photo: require('./bot_pics/bot8.png'), logic: chessLogic3, label: 'Stockfish 2000' },
+  { name: 'Checkmate Champ', photo: require('./bot_pics/bot9.png'), logic: chessLogic3, label: 'Stockfish 2250' },
+  { name: 'Endgame Expert', photo: require('./bot_pics/bot10.png'), logic: chessLogic3, label: 'Stockfish 2500' },
 ];
 
 const BoardPage = () => {
@@ -35,6 +36,11 @@ const BoardPage = () => {
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(null);
   const [playerColor, setPlayerColor] = useState(Math.random() < 0.5 ? 'white' : 'black');
+  const [isTraining, setIsTraining] = useState(false);
+  const [trainingGames, setTrainingGames] = useState(0);
+  const [trainingResults, setTrainingResults] = useState([]);
+  const [predictedElo, setPredictedElo] = useState(null);
+  const [eloRange, setEloRange] = useState({ min: 0, max: 3000, current: 1500 });
 
   // Initialize OpenAI with configuration
   const openai = new OpenAI({
@@ -189,6 +195,46 @@ const BoardPage = () => {
     }
   }, []);  // Run once when component mounts
 
+  useEffect(() => {
+    if (gameOver && isTraining && trainingGames < 5) {
+      // Update ELO range based on game result
+      const newRange = { ...eloRange };
+      if (winner === 'player') {
+        newRange.min = eloRange.current;
+      } else {
+        newRange.max = eloRange.current;
+      }
+      newRange.current = Math.floor((newRange.min + newRange.max) / 2);
+      
+      setEloRange(newRange);
+      setTrainingResults([...trainingResults, { elo: eloRange.current, result: winner === 'player' ? 'win' : 'loss' }]);
+      setTrainingGames(trainingGames + 1);
+
+      if (trainingGames === 4) {
+        // Training complete, calculate predicted ELO
+        const finalElo = Math.floor((newRange.min + newRange.max) / 2);
+        setPredictedElo(finalElo);
+        setIsTraining(false);
+      } else {
+        // Start next training game
+        setTimeout(() => {
+          resetGame();
+          chessLogic3.initializeEngine('Training Bot', newRange.current);
+        }, 1000);
+      }
+    }
+  }, [gameOver, isTraining, trainingGames]);
+
+  const startTraining = () => {
+    setIsTraining(true);
+    setTrainingGames(0);
+    setTrainingResults([]);
+    setPredictedElo(null);
+    setEloRange({ min: 0, max: 3000, current: 1500 });
+    resetGame();
+    chessLogic3.initializeEngine('Training Bot', 1500);
+  };
+
   const handleMove = (move) => {
     const newChess = new Chess(chess.fen());
     
@@ -252,6 +298,16 @@ const BoardPage = () => {
     setMessages([]);
     // If it's the Sicilian bot (Bot 1), player is always white, otherwise random
     setPlayerColor(bot.name === 'Bot 1' ? 'white' : (Math.random() < 0.5 ? 'white' : 'black'));
+    setIsPlayerTurn(true);
+  };
+
+  const resetGame = () => {
+    const newGame = new Chess();
+    setChess(newGame);
+    setFen(newGame.fen());
+    setMoveHistory([]);
+    setGameOver(false);
+    setWinner(null);
     setIsPlayerTurn(true);
   };
 
@@ -371,6 +427,12 @@ const BoardPage = () => {
                   </span>
                 )}
               </button>
+              <button
+                onClick={startTraining}
+                className="train-button"
+              >
+                Start Training
+              </button>
             </div>
           </div>
         </div>
@@ -379,6 +441,13 @@ const BoardPage = () => {
       <div>
         <p>Current turn: {isPlayerTurn ? `Your turn (${playerColor})` : `Bot's turn (${playerColor === 'white' ? 'black' : 'white'})`}</p>
         <p>FEN: {fen}</p>
+        {isTraining && (
+          <div>
+            <p>Training in progress...</p>
+            <p>Games played: {trainingGames}</p>
+            <p>Predicted ELO: {predictedElo}</p>
+          </div>
+        )}
       </div>
     </div>
   );
