@@ -23,6 +23,7 @@ const BoardPage = () => {
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(null);
+  const [playerColor, setPlayerColor] = useState(Math.random() < 0.5 ? 'white' : 'black');
 
   // Initialize OpenAI with configuration
   const openai = new OpenAI({
@@ -162,9 +163,23 @@ const BoardPage = () => {
     }
   }, [isPlayerTurn, makeBotMove]);
 
+  useEffect(() => {
+    // If player is black, bot (white) makes the first move
+    if (playerColor === 'black' && !gameOver) {
+      makeBotMove();
+    }
+  }, []);  // Run once when component mounts
+
   const handleMove = (move) => {
+    const newChess = new Chess(chess.fen());
+    
+    // Only allow moves if it's the player's turn and the piece color matches player's color
+    const piece = newChess.get(move.from);
+    if (!piece || piece.color !== playerColor.charAt(0) || !isPlayerTurn) {
+      return;
+    }
+
     try {
-      const newChess = new Chess(chess.fen());
       const result = newChess.move(move);
       if (result) {
         setChess(newChess);
@@ -232,12 +247,12 @@ const BoardPage = () => {
         <div className="chess-game">
           <div className="board-container">
             <div className="player-name opponent">
-              <span>Bot (Black - Sicilian Defense)</span>
+              <span>Bot ({playerColor === 'white' ? 'black' : 'white'})</span>
             </div>
             <div className="board">
               <Chessboard
                 position={fen}
-                orientation="white"
+                orientation={playerColor}
                 onDrop={(move) =>
                   handleMove({
                     from: move.sourceSquare,
@@ -257,7 +272,7 @@ const BoardPage = () => {
               )}
             </div>
             <div className="player-name player">
-              <span>You (White)</span>
+              <span>You ({playerColor})</span>
             </div>
           </div>
         </div>
@@ -343,7 +358,7 @@ const BoardPage = () => {
       </div>
 
       <div>
-        <p>Current turn: {isPlayerTurn ? "Player (White)" : "Bot (Black)"}</p>
+        <p>Current turn: {isPlayerTurn ? `Your turn (${playerColor})` : `Bot's turn (${playerColor === 'white' ? 'black' : 'white'})`}</p>
         <p>FEN: {fen}</p>
       </div>
     </div>
