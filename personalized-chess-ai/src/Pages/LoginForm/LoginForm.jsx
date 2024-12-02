@@ -14,11 +14,72 @@ const LoginForm = () => {
   const [resetSent, setResetSent] = useState(false);
   const navigate = useNavigate();
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     if (!isLogin && password !== confirmPassword) {
       alert("Passwords don't match!");
       return;
+    }
+    // Register
+    else if (!isLogin) {
+      try {
+        const response = await fetch("https://movemate.database.windows.net/create-account", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username,
+            email,
+            password,
+          }),
+        });
+
+        // Handle the response
+        if (response.ok) {
+          const result = await response.json();
+          alert(result.message);
+          setIsLogin(true);
+
+          // handle redirect
+        } else {
+          const errorData = await response.json();
+          alert(`Error: ${errorData.error}`);
+        }
+      } catch (error) {
+        console.error("Error creating account:", error);
+        alert("Failed to create account. Please try again later.");
+      }
+    }
+    // Login
+    else if (isLogin) {
+      try {
+        const response = await fetch("https://movemate.database.windows.net/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username,
+            password,
+          }),
+        });
+
+        // Handle the response
+        if (response.ok) {
+          const result = await response.json();
+          alert(result.message);
+
+          // handle valid response / redirect (WIP)
+          console.log("Login successful");
+        } else {
+          const errorData = await response.json();
+          alert(`Error: ${errorData.error}`);
+        }
+      } catch (error) {
+        console.error("Error logging in:", error);
+        alert("Failed to login. Please try again later.");
+      }
     }
   }
 
