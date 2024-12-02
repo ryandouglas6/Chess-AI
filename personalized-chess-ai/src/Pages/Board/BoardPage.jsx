@@ -221,7 +221,6 @@ const BoardPage = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // List of bots
   const bots = [
     { name: 'Bot 1', photo: require('./bot_pics/bot1.png') },
     { name: 'Bot 2', photo: require('./bot_pics/bot2.png') },
