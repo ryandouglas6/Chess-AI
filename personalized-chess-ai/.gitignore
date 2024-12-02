@@ -5,6 +5,7 @@
 /.pnp
 .pnp.js
 
+
 # testing
 /coverage
 
@@ -25,4 +26,4 @@ yarn-error.log*
 #ignore
 .vscode/
 
-.env
+backend/venv/
