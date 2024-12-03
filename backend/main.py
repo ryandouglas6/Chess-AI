@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask
 
 app = Flask(__name__)
 
@@ -7,4 +7,4 @@ def index():
     return "Testing"
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=False)  # Production-ready settings

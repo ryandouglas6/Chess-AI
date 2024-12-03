@@ -3,9 +3,16 @@ import chess.engine
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from dotenv import load_dotenv
+
+# Load environment variables from .env
+load_dotenv()
 
 # Path to Stockfish executable
-STOCKFISH_PATH = r"C:\Users\ryang\OneDrive\Desktop\stockfish\stockfish-windows-x86-64-avx2.exe"
+STOCKFISH_PATH = os.getenv("STOCKFISH_PATH")
+
+if not STOCKFISH_PATH:
+    raise EnvironmentError("STOCKFISH_PATH is not defined in .env file.")
 
 # Neural network for the chess bot
 class ChessBot(nn.Module):

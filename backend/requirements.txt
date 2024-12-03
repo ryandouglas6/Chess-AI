@@ -1,0 +1,5 @@
+Flask
+python-dotenv
+pyodbc
+torch
+python-chess

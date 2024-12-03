@@ -1,12 +1,27 @@
 import pyodbc
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env
+load_dotenv()
+
+# Database credentials from .env
+DB_DRIVER = os.getenv("DB_DRIVER", "ODBC Driver 17 for SQL Server")
+DB_SERVER = os.getenv("DB_SERVER")
+DB_NAME = os.getenv("DB_NAME")
+DB_USERNAME = os.getenv("DB_USERNAME")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+
+if not all([DB_SERVER, DB_NAME, DB_USERNAME, DB_PASSWORD]):
+    raise EnvironmentError("Missing database configuration in .env file.")
 
 # Establish the connection
 conn = pyodbc.connect(
-    "DRIVER={ODBC Driver 17 for SQL Server};"
-    "SERVER=movemate.database.windows.net;"
-    "DATABASE=movemate;"  
-    "UID=movemate;"   
-    "PWD=Castle4721$"
+    f"DRIVER={{{DB_DRIVER}}};"
+    f"SERVER={DB_SERVER};"
+    f"DATABASE={DB_NAME};"
+    f"UID={DB_USERNAME};"
+    f"PWD={DB_PASSWORD}"
 )
 cursor = conn.cursor()
 

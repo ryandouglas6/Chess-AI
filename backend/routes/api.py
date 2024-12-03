@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Flask, request, jsonify
 from flask_cors import CORS  # Enable CORS for frontend-backend communication
 from backend.utils.helpers import (
@@ -6,6 +7,7 @@ from backend.utils.helpers import (
     validate_password_strength,
     is_password_correct,
     generate_bot_id,
+    sanitize_chess_notation
 )
 
 # Database connection
@@ -21,6 +23,7 @@ def get_db_connection():
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Root route
 @app.route('/', methods=['GET'])
